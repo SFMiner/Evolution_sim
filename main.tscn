@@ -1,0 +1,190 @@
+[gd_scene load_steps=2 format=3 uid="uid://cggv5xf0uq1si"]
+
+[ext_resource type="Script" uid="uid://bhfaxxxj7nk0s" path="res://main.gd" id="1_mxn8c"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_mxn8c")
+
+[node name="Background" type="TextureRect" parent="."]
+offset_right = 1280.0
+offset_bottom = 720.0
+expand_mode = 1
+
+[node name="OrganismContainer" type="Node2D" parent="."]
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TopPanel" type="PanelContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -1.0
+offset_right = 1272.0
+offset_bottom = 180.0
+grow_horizontal = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/TopPanel"]
+layout_mode = 2
+
+[node name="LeftInfo" type="VBoxContainer" parent="UI/TopPanel/HBoxContainer"]
+custom_minimum_size = Vector2(325, 0)
+layout_mode = 2
+
+[node name="SpeciesLabel" type="Label" parent="UI/TopPanel/HBoxContainer/LeftInfo"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Species: --"
+
+[node name="HabitatLabel" type="Label" parent="UI/TopPanel/HBoxContainer/LeftInfo"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Habitat: --"
+
+[node name="GenerationLabel" type="Label" parent="UI/TopPanel/HBoxContainer/LeftInfo"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Generation: 1"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/TopPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="UI/TopPanel/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Population Genetics"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="UI/TopPanel/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="AlleleFreqLabel" type="Label" parent="UI/TopPanel/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Allele Frequencies:
+--"
+horizontal_alignment = 1
+
+[node name="GenotypeFreqLabel" type="Label" parent="UI/TopPanel/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Genotype Frequencies:
+--"
+horizontal_alignment = 1
+
+[node name="GraphContainer" type="Control" parent="UI/TopPanel/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="GraphLabel" type="Label" parent="UI/TopPanel/HBoxContainer/VBoxContainer/GraphContainer"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -50.0
+offset_right = 50.0
+offset_bottom = 26.0
+grow_horizontal = 2
+text = "Allele Frequency Graph"
+horizontal_alignment = 1
+
+[node name="Container" type="Container" parent="UI/TopPanel/HBoxContainer"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="UI"]
+custom_minimum_size = Vector2(160, 180)
+layout_mode = 0
+offset_left = 1100.0
+offset_right = 1270.0
+offset_bottom = 180.0
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 9
+
+[node name="CenterPanel" type="VBoxContainer" parent="UI/PanelContainer/MarginContainer"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="TimerLabel" type="Label" parent="UI/PanelContainer/MarginContainer/CenterPanel"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Time: --"
+
+[node name="CaughtLabel" type="Label" parent="UI/PanelContainer/MarginContainer/CenterPanel"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Caught: 0"
+
+[node name="StartRoundButton" type="Button" parent="UI/PanelContainer/MarginContainer/CenterPanel"]
+layout_mode = 2
+text = "Start Round"
+
+[node name="NextGenButton" type="Button" parent="UI/PanelContainer/MarginContainer/CenterPanel"]
+visible = false
+layout_mode = 2
+text = "Next Generation"
+
+[node name="SelectHabitatButton" type="Button" parent="UI/PanelContainer/MarginContainer/CenterPanel"]
+layout_mode = 2
+text = "Change Habitat"
+
+[node name="ShowSurvivorsButton" type="Button" parent="UI/PanelContainer/MarginContainer/CenterPanel"]
+visible = false
+layout_mode = 2
+text = "Show Survivors"
+
+[node name="HabitatSelection" type="Control" parent="UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 618.0
+offset_top = 318.0
+offset_right = 618.0
+offset_bottom = 318.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DimBackground" type="ColorRect" parent="UI/HabitatSelection"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="Panel" type="PanelContainer" parent="UI/HabitatSelection"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -200.0
+offset_right = 250.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/HabitatSelection/Panel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="UI/HabitatSelection/Panel/VBoxContainer"]
+layout_mode = 2
+text = "Select Habitat"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="UI/HabitatSelection/Panel/VBoxContainer"]
+layout_mode = 2

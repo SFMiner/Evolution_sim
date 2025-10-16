@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://b2qxvh6mjwrxu"]
+
+[ext_resource type="Script" path="res://organism.gd" id="1_o5wqe"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_wv8yi"]
+radius = 20.0
+
+[node name="Organism" type="Area2D"]
+script = ExtResource("1_o5wqe")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_wv8yi")
