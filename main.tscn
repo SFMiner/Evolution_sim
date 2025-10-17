@@ -1,6 +1,29 @@
-[gd_scene load_steps=2 format=3 uid="uid://cggv5xf0uq1si"]
+[gd_scene load_steps=8 format=3 uid="uid://cggv5xf0uq1si"]
 
 [ext_resource type="Script" uid="uid://bhfaxxxj7nk0s" path="res://main.gd" id="1_mxn8c"]
+[ext_resource type="Theme" uid="uid://dxoikcxoaw182" path="res://evolution_theme.tres" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://d2dfauyx5a8rw" path="res://draggable_panel.gd" id="3_1bvp3"]
+[ext_resource type="FontFile" uid="uid://c10brr8on5cst" path="res://fonts/MotleyForces.ttf" id="3_h2yge"]
+[ext_resource type="AudioStream" uid="uid://de6sfntodenbc" path="res://yoink.mp3" id="5_lquwl"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1bvp3"]
+bg_color = Color(0.8313883, 0.0007808733, 0.871037, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.29803923, 0.6862745, 0.3137255, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ig7tw"]
+bg_color = Color(0.5815408, 0.5505385, 0.8840659, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_mxn8c")
@@ -20,6 +43,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme = ExtResource("2_0xm2m")
 
 [node name="TopPanel" type="PanelContainer" parent="UI"]
 layout_mode = 1
@@ -98,11 +122,14 @@ custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="UI"]
+visible = false
 custom_minimum_size = Vector2(160, 180)
 layout_mode = 0
-offset_left = 1100.0
-offset_right = 1270.0
-offset_bottom = 180.0
+offset_left = 995.0
+offset_top = 4.0
+offset_right = 1276.0
+offset_bottom = 203.0
+script = ExtResource("3_1bvp3")
 
 [node name="MarginContainer" type="MarginContainer" parent="UI/PanelContainer"]
 layout_mode = 2
@@ -117,13 +144,23 @@ layout_mode = 2
 
 [node name="TimerLabel" type="Label" parent="UI/PanelContainer/MarginContainer/CenterPanel"]
 layout_mode = 2
-size_flags_horizontal = 0
 text = "Time: --"
+horizontal_alignment = 1
+
+[node name="Container2" type="Container" parent="UI/PanelContainer/MarginContainer/CenterPanel"]
+visible = false
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
 
 [node name="CaughtLabel" type="Label" parent="UI/PanelContainer/MarginContainer/CenterPanel"]
 layout_mode = 2
-size_flags_horizontal = 0
 text = "Caught: 0"
+horizontal_alignment = 1
+
+[node name="Container" type="Container" parent="UI/PanelContainer/MarginContainer/CenterPanel"]
+visible = false
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
 
 [node name="StartRoundButton" type="Button" parent="UI/PanelContainer/MarginContainer/CenterPanel"]
 layout_mode = 2
@@ -177,6 +214,7 @@ offset_right = 250.0
 offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1bvp3")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/HabitatSelection/Panel"]
 layout_mode = 2
@@ -188,3 +226,50 @@ horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="UI/HabitatSelection/Panel/VBoxContainer"]
 layout_mode = 2
+
+[node name="ScorePopup" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="Panel" type="Panel" parent="ScorePopup"]
+anchors_preset = -1
+anchor_left = 0.377
+anchor_top = 0.29200003
+anchor_right = 0.61300004
+anchor_bottom = 0.564
+offset_left = -17.559998
+offset_top = 30.75998
+offset_right = -17.640015
+offset_bottom = -5.080017
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_0xm2m")
+theme_override_styles/panel = SubResource("StyleBoxFlat_ig7tw")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScorePopup/Panel"]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 33.0
+offset_right = 288.0
+offset_bottom = 127.0
+metadata/_edit_group_ = true
+
+[node name="TitleLabel" type="Label" parent="ScorePopup/Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.48385966, 0.1556068, 0.37825432, 1)
+theme_override_fonts/font = ExtResource("3_h2yge")
+theme_override_font_sizes/font_size = 24
+text = "LEVEL COMPLETE!"
+horizontal_alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="ScorePopup/Panel/VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="ScorePopup/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Continue to Next Generation"
+
+[node name="YoinkPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_lquwl")
+volume_db = -22.899

@@ -1,4 +1,7 @@
+AudioStreamPlayer
+AudioStreamPlayer2D
 MarginContainer
+Container
+Label
 PanelContainer
 Panel
-Container

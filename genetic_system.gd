@@ -42,19 +42,25 @@ static func get_random_allele_from_genotype(geno: Genotype) -> Allele:
 
 ## Duplicate an allele (to avoid reference issues)
 static func duplicate_allele(allele: Allele) -> Allele:
-	return Allele.new(allele.color, allele.dominance, allele.pattern_type, allele.pattern_intensity)
+	return Allele.new(allele.color, allele.dominance, allele.pattern_type, allele.pattern_intensity, allele.habitat_preference)
 
 ## Mutate an allele slightly
 static func mutate_allele(allele: Allele) -> Allele:
 	var new_color = allele.color
+	var new_habitat_pref = allele.habitat_preference
 
 	# Slight color shift
 	var shift = 0.1
 	new_color.r = clamp(new_color.r + randf_range(-shift, shift), 0.0, 1.0)
 	new_color.g = clamp(new_color.g + randf_range(-shift, shift), 0.0, 1.0)
 	new_color.b = clamp(new_color.b + randf_range(-shift, shift), 0.0, 1.0)
+	
+	# Small chance to mutate habitat preference (10% of mutations)
+	if randf() < 0.1:
+		var prefs = ["flower", "foliage", "any"]
+		new_habitat_pref = prefs[randi() % prefs.size()]
 
-	return Allele.new(new_color, allele.dominance, allele.pattern_type, allele.pattern_intensity)
+	return Allele.new(new_color, allele.dominance, allele.pattern_type, allele.pattern_intensity, new_habitat_pref)
 
 ## Mutate a moth allele (discrete morphs: light <-> dark)
 static func mutate_moth_allele(allele: Allele) -> Allele:
@@ -67,12 +73,12 @@ static func mutate_moth_allele(allele: Allele) -> Allele:
 
 	if brightness > 0.5:
 		# Currently light, mutate to dark
-		return Allele.new(dark_color, 1, allele.pattern_type, allele.pattern_intensity)
+		return Allele.new(dark_color, 1, allele.pattern_type, allele.pattern_intensity, allele.habitat_preference)
 	else:
 		# Currently dark, mutate to light
-		return Allele.new(light_color, 0, allele.pattern_type, allele.pattern_intensity)
+		return Allele.new(light_color, 0, allele.pattern_type, allele.pattern_intensity, allele.habitat_preference)
 
-## Create a random genotype for initial population
+## Create a random genotype for initial population with habitat preference based on color
 static func create_random_genotype(base_color: Color, variation: float = 0.3, pattern: String = "solid") -> Genotype:
 	var color1 = Color(
 		clamp(base_color.r + randf_range(-variation, variation), 0.0, 1.0),
@@ -89,10 +95,32 @@ static func create_random_genotype(base_color: Color, variation: float = 0.3, pa
 	var dom1 = 1 if randf() < 0.5 else 0
 	var dom2 = 1 if randf() < 0.5 else 0
 	
-	var allele1 = Allele.new(color1, dom1, pattern, randf_range(0.5, 1.0))
-	var allele2 = Allele.new(color2, dom2, pattern, randf_range(0.5, 1.0))
+	# Determine habitat preference based on color brightness/greenness
+	var habitat_pref1 = determine_habitat_preference_from_color(color1)
+	var habitat_pref2 = determine_habitat_preference_from_color(color2)
+	
+	var allele1 = Allele.new(color1, dom1, pattern, randf_range(0.5, 1.0), habitat_pref1)
+	var allele2 = Allele.new(color2, dom2, pattern, randf_range(0.5, 1.0), habitat_pref2)
 	
 	return Genotype.new(allele1, allele2)
+
+## Determine habitat preference based on color (green = foliage, bright = flower)
+static func determine_habitat_preference_from_color(color: Color) -> String:
+	# Calculate greenness (high green, low red/blue)
+	var greenness = color.g - (color.r + color.b) / 2.0
+	
+	# Calculate brightness
+	var brightness = (color.r + color.g + color.b) / 3.0
+	
+	# Green colors prefer foliage
+	if greenness > 0.15:
+		return "foliage"
+	# Very bright colors prefer flowers
+	elif brightness > 0.6 and (color.r > 0.5 or color.b > 0.4):
+		return "flower"
+	# Intermediate or unclear - generalist
+	else:
+		return "any"
 
 ## Calculate allele frequencies in a population
 static func calculate_allele_frequencies(population: Array[Organism]) -> Dictionary:

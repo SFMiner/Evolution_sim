@@ -5,6 +5,7 @@ extends Node2D
 const ORGANISM_SCENE = preload("res://organism.tscn")
 const ROUND_DURATION: float = 15.0  # seconds to catch organisms
 const SURVIVAL_THRESHOLD: float = 0.2  # End round when 20% remain
+const FLOWER_SIZE_MULTIPLIER: float = 8.0  # Tweakable flower size (multiplied by beetle diameter)
 
 var current_habitat: HabitatConfig
 var current_generation: int = 1
@@ -30,19 +31,24 @@ var generation_data: Array[Dictionary] = []
 @onready var allele_freq_label: Label = $UI/TopPanel/HBoxContainer/VBoxContainer/AlleleFreqLabel
 @onready var genotype_freq_label: Label = $UI/TopPanel/HBoxContainer/VBoxContainer/GenotypeFreqLabel
 @onready var graph_container: Control = $UI/TopPanel/HBoxContainer/VBoxContainer/GraphContainer
+@onready var panel_container: Control = $UI/PanelContainer
 @onready var start_round_button: Button = $UI/PanelContainer/MarginContainer/CenterPanel/StartRoundButton
 @onready var next_gen_button: Button = $UI/PanelContainer/MarginContainer/CenterPanel/NextGenButton
 @onready var show_survivors_button: Button = $UI/PanelContainer/MarginContainer/CenterPanel/ShowSurvivorsButton
 @onready var select_habitat_button: Button = $UI/PanelContainer/MarginContainer/CenterPanel/SelectHabitatButton
 @onready var timer_label: Label = $UI/PanelContainer/MarginContainer/CenterPanel/TimerLabel
 @onready var caught_label: Label = $UI/PanelContainer/MarginContainer/CenterPanel/CaughtLabel
+@onready var continue_button: Button = $ScorePopup/Panel/VBoxContainer/ContinueButton
 @onready var habitat_selection: Control = $UI/HabitatSelection
+@onready var score_popup: CanvasLayer = $ScorePopup
+@onready var yoink_player : AudioStreamPlayer = $YoinkPlayer 
 
 func _ready() -> void:
 	start_round_button.pressed.connect(_on_start_round_pressed)
 	next_gen_button.pressed.connect(_on_next_generation_pressed)
 	select_habitat_button.pressed.connect(_on_select_habitat_pressed)
 	show_survivors_button.pressed.connect(_on_show_survivors_pressed)
+	continue_button.pressed.connect(_on_continue_button_pressed)
 
 	next_gen_button.visible = false
 	
@@ -68,7 +74,9 @@ func setup_habitat_selection() -> void:
 func _on_habitat_selected(habitat: HabitatConfig) -> void:
 	current_habitat = habitat
 	habitat_selection.visible = false
+	panel_container.visible = true
 	initialize_simulation()
+
 
 func _on_select_habitat_pressed() -> void:
 	habitat_selection.visible = true
@@ -228,22 +236,87 @@ func render_bark_background(image: Image) -> void:
 			image.set_pixel(x, y, color)
 
 func render_flower_background(image: Image) -> void:
-	# Fill with primary color (flowers)
-	image.fill(current_habitat.background_color)
+	# NEW IMPROVED VERSION: Creates realistic flower habitat with blotchy green foliage
+	# and large colorful flower circles
 	
-	# Add stem/leaf color patches (secondary colors)
+	# Get beetle diameter (from organism.gd, default is 28 pixels)
+	var beetle_diameter = 28.0
+	var flower_diameter = int(beetle_diameter * FLOWER_SIZE_MULTIPLIER)
+	
+	# Define green shades for blotchy foliage background
+	var base_green = current_habitat.background_color
+	var dark_green = base_green.darkened(0.25)
+	var light_green = base_green.lightened(0.2)
+	var stem_green = base_green.darkened(0.15)
+	
+	# Step 1: Create blotchy green background using multiple noise patterns
+	for y in range(720):
+		for x in range(1280):
+			# Three types of noise for organic variation
+			var noise1 = (sin(x * 0.05) * cos(y * 0.05) + 1.0) / 2.0
+			var noise2 = (sin(x * 0.08 + 10) * sin(y * 0.07 + 5) + 1.0) / 2.0
+			var noise3 = (cos(x * 0.03) * cos(y * 0.04) + 1.0) / 2.0
+			
+			# Combine noise patterns (weighted)
+			var combined = (noise1 * 0.4 + noise2 * 0.3 + noise3 * 0.3)
+			
+			# Map to four shades of green for depth
+			var color = base_green
+			if combined > 0.65:
+				color = light_green  # Lightest areas
+			elif combined < 0.35:
+				color = dark_green   # Darkest areas
+			elif combined < 0.45:
+				color = stem_green   # Stem-like darker areas
+			# else: base_green (middle tone)
+			
+			image.set_pixel(x, y, color)
+	
+	# Step 2: Draw large circular flowers on top
 	if current_habitat.secondary_colors.size() > 0:
-		var stem_color = current_habitat.secondary_colors[0]
+		var flower_color = current_habitat.secondary_colors[0]
 		
-		# Draw vertical stems
-		for x in range(0, 1280, 80):
-			var stem_x = x + randi() % 60
-			for y in range(200, 720):
-				if randi() % 100 < 30:  # 30% coverage for stems
-					var stem_width = 8 + randi() % 8
-					for dx in range(-stem_width/2, stem_width/2):
-						if stem_x + dx >= 0 and stem_x + dx < 1280:
-							image.set_pixel(stem_x + dx, y, stem_color)
+		# Calculate flower grid layout (with some spacing for overlap)
+		var flowers_per_row = int(1280 / (flower_diameter * 0.8))
+		var flowers_per_col = int(720 / (flower_diameter * 0.8))
+		
+		# Draw flowers in a grid with random offsets
+		for row in range(flowers_per_col):
+			for col in range(flowers_per_row):
+				# Base position on grid
+				var base_x = col * (flower_diameter * 1.2) + flower_diameter / 2
+				var base_y = row * (flower_diameter * 1.2) + flower_diameter / 2
+				
+				# Add random offset for natural look (±15% of diameter)
+				var offset_range = flower_diameter * 0.15
+				var flower_x = int(base_x + randf_range(-offset_range, offset_range))
+				var flower_y = int(base_y + randf_range(-offset_range, offset_range))
+				
+				# Draw circular flower with soft edge blending
+				var radius = flower_diameter / 2
+				for dy in range(-radius, radius):
+					for dx in range(-radius, radius):
+						var dist = sqrt(dx * dx + dy * dy)
+						if dist < radius:
+							var px = flower_x + dx
+							var py = flower_y + dy
+							
+							if px >= 0 and px < 1280 and py >= 0 and py < 720:
+								# Blend color slightly for depth (95-105% of base color)
+								var color_variation = randf_range(0.95, 1.05)
+								var varied_color = Color(
+									clamp(flower_color.r * color_variation, 0.0, 1.0),
+									clamp(flower_color.g * color_variation, 0.0, 1.0),
+									clamp(flower_color.b * color_variation, 0.0, 1.0)
+								)
+								
+								# Soft edge blending (fade near edge)
+								if dist > radius * 0.9:
+									var edge_blend = 1.0 - ((dist - radius * 0.9) / (radius * 0.1))
+									var bg_color = image.get_pixel(px, py)
+									varied_color = bg_color.lerp(varied_color, edge_blend)
+								
+								image.set_pixel(px, py, varied_color)
 
 func render_leaf_background(image: Image) -> void:
 	# Start with base color
@@ -359,6 +432,7 @@ func should_end_round() -> bool:
 func _on_organism_clicked(organism: Organism) -> void:
 	if round_active and organism.is_alive:
 		organism.catch_organism()
+		yoink_player.play()
 		organisms_caught += 1
 		population.erase(organism)
 
@@ -374,7 +448,10 @@ func end_round() -> void:
 	
 	update_ui()
 	update_graph()
-	
+	score_popup.visible = true
+	next_gen_button.visible = false
+	timer_label.text = str(round_time_remaining)
+	caught_label.text = str(organisms_caught) + "/" + str(initial_population_size)
 	next_gen_button.visible = true
 
 func record_generation_data() -> Dictionary:
@@ -392,26 +469,49 @@ func record_generation_data() -> Dictionary:
 func _on_next_generation_pressed() -> void:
 	create_next_generation()
 
+## Find the nearest organism to a given organism (excluding itself)
+func find_nearest_neighbor(organism: Organism, others: Array[Organism]) -> Organism:
+	var nearest: Organism = null
+	var min_distance = INF
+	
+	for other in others:
+		if other == organism:
+			continue  # Don't mate with yourself!
+		
+		var distance = organism.position.distance_to(other.position)
+		if distance < min_distance:
+			min_distance = distance
+			nearest = other
+	
+	return nearest
+
 func create_next_generation() -> void:
 	if population.size() < 2:
 		push_warning("Population too small to reproduce!")
 		return
 	
 	# Store survivors
-		next_gen_button.visible = true
-#		show_survivors_button.visible = false
+	next_gen_button.visible = true
+#	show_survivors_button.visible = false
 	var survivors = population.duplicate()
 	
 	# Clear current population
 	clear_population()
 	
-	# Create next generation through reproduction
+	# Create next generation through SPATIAL ASSORTATIVE MATING
+	# Each organism breeds with its nearest neighbor
 	var target_population = initial_population_size
 	
 	for i in range(target_population):
-		# Select two random parents
+		# Select a random survivor as parent1
 		var parent1 = survivors[randi() % survivors.size()]
-		var parent2 = survivors[randi() % survivors.size()]
+		
+		# Find parent1's nearest neighbor as parent2
+		var parent2 = find_nearest_neighbor(parent1, survivors)
+		
+		if parent2 == null:
+			# Fallback: use random mate if no neighbor found
+			parent2 = survivors[randi() % survivors.size()]
 
 		# Create offspring (use moth-specific reproduction for discrete morphs)
 		var offspring_genotype: Genotype
@@ -524,3 +624,8 @@ func _draw() -> void:
 			Vector2(plot_rect.position.x + 25, plot_rect.position.y + 15),
 			Color.RED, 2.0
 		)
+
+func _on_continue_button_pressed():
+	score_popup.visible = false
+	create_next_generation()
+	panel_container.visible = true

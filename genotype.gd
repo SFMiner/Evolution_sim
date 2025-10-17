@@ -28,6 +28,20 @@ func get_phenotype_pattern() -> Dictionary:
 		"intensity": dominant_allele.pattern_intensity
 	}
 
+## Get the expressed habitat preference
+func get_phenotype_habitat_preference() -> String:
+	# Check dominance for habitat preference
+	if allele1.dominance > allele2.dominance:
+		return allele1.habitat_preference
+	elif allele2.dominance > allele1.dominance:
+		return allele2.habitat_preference
+	else:
+		# Co-dominance: if both have same preference, use it
+		if allele1.habitat_preference == allele2.habitat_preference:
+			return allele1.habitat_preference
+		# If different, beetle is generalist ("any")
+		return "any"
+
 ## Get genotype as string for display (e.g., "AA", "Aa", "aa")
 func get_genotype_string() -> String:
 	var a1_symbol = "A" if allele1.dominance > 0 else "a"

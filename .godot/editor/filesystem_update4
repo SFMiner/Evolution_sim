@@ -1,1 +1,7 @@
 res://organism.gd
+res://main.gd
+res://main.tscn
+res://evolution_theme.tres
+res://allele.gd
+res://genetic_system.gd
+res://genotype.gd
